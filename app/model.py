@@ -11,3 +11,4 @@ class Job(Base):
     job_start = Column(DateTime, nullable= True)
     job_finish = Column(DateTime, nullable= True)
     job_payload = Column(Text, nullable= True)
+    job_retries = Column(Integer, default= 0)
