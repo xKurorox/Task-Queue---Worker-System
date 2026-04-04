@@ -19,6 +19,22 @@ def job_submit(job: JobCreate, db: Session = Depends(get_db)):
     redis_client.lpush("job_queue", job_json)
     return {"job_id": new_job.job_id}
 
+@router.get("/jobs/dashboard")
+def get_dashboard(db: Session = Depends(get_db)):
+    completed_count = db.query(Job).filter(Job.job_status == "completed").count()
+    pending_count = db.query(Job).filter(Job.job_status == "pending").count()
+    fail_count = db.query(Job).filter(Job.job_status == "failed").count()
+    active_count = db.query(Job).filter(Job.job_status == "active").count()
+    queue_count = redis_client.llen("job_queue")
+    dead_letter_count = redis_client.llen("dead_letter_queue")
+    return{ "complete_count": completed_count,
+            "pending_count": pending_count,
+            "fail_count": fail_count,
+            "active_count": active_count,
+            "queue_count": queue_count,
+            "dead_letter_count": dead_letter_count}
+
+
 @router.get("/jobs/{job_id}", response_model = JobResponse)
 def get_status(job_id: int, db: Session = Depends(get_db)):
     user_entry = db.query(Job).filter(job_id == Job.job_id).first()
